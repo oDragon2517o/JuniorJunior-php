@@ -12,6 +12,7 @@ use \AmoCRM\OAuth\OAuthServiceInterface;
 use \AmoCRM\OAuth\getOAuthClient;
 use \AmoCRM\OAuth\AccessTokenInterface;
 use \AmoCRM\OAuth\leads;
+use \League\OAuth2\Client\Token\AccessToken;
 
 
 class ParserController extends Controller
@@ -35,6 +36,22 @@ $code='def50200e91549f6ba3b77ce00a39abcf6ef19db4473ec5bcf4b165a3a10b3bb52e2bd4f4
 
 // getAccessTokenByCode($code);
 // $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($_GET['code']);
+
+// $accessToken=$code;
+$accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($_GET[$code]);
+$apiClient->setAccessToken($accessToken)
+        ->setAccountBaseDomain($accessToken->getValues()['baseDomain'])
+        ->onAccessTokenRefresh(
+            function (\League\OAuth2\Client\Token\AccessTokenInterface $accessToken, string $baseDomain) {
+                saveToken(
+                    [
+                        'accessToken' => $accessToken->getToken(),
+                        'refreshToken' => $accessToken->getRefreshToken(),
+                        'expires' => $accessToken->getExpires(),
+                        'baseDomain' => $baseDomain,
+                    ]
+                );
+            });
 
 dd($apiClient );
 }
